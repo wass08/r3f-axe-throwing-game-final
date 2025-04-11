@@ -1,10 +1,14 @@
-# r3f-vite-starter
-A boilerplate to build R3F projects
+# R3F Axe Throwing Game Tutorial
 
-```
-yarn
-yarn dev
-```
+[Video Tutorial](https://www.youtube.com/watch?v=haIWEy6O6rM)
+
+![Video thumbnail](https://github.com/user-attachments/assets/a6e8e486-b36b-4936-a157-14bb9000ef94)
+
+[Demo](https://axe.wawasensei.dev/) - [Starter Pack](https://github.com/wass08/r3f-axe-throwing-game-starter)
 
 
-![image](https://user-images.githubusercontent.com/6551176/221732091-23ee52cb-4150-42fa-b998-43628d7a6b0d.png)
+# Attributions
+
+[Axe Small by Quaternius](https://poly.pizza/m/o54NXjRI4V)
+
+[Balloon by Poly by Google](https://poly.pizza/m/d1gDDhM7pTf)
