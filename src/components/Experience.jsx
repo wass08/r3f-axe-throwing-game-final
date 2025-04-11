@@ -21,30 +21,37 @@ import { VFXEmitter, VFXParticles } from "wawa-vfx";
 import { AUDIOS } from "../App";
 import { balloonMaterials, useGame } from "../hooks/useGame";
 import { GradientSky } from "./GradientSky";
+import { Perf } from "r3f-perf";
+import { Balloons } from "./Balloons";
 
 export const Experience = () => {
   const { nodes } = useGLTF("models/Axe Small Applied.glb");
 
   const controls = useRef();
-  const axeLaunched = useGame((state) => state.axeLaunched);
-  const firstGame = useGame((state) => state.firstGame);
-  const throws = useGame((state) => state.throws);
-  useEffect(() => {
+
+  useFrame(() => {
+    if(!controls.current) return;
+    const axeLaunched = useGame.getState().axeLaunched;
+    const firstGame = useGame.getState().firstGame;
+    const throws = useGame.getState().throws;
+    const camera = controls.current;
+    
     if (firstGame) {
-      controls.current.setLookAt(-15, -5, 20, 10, 0, 0, true);
+      camera.setLookAt(-15, -5, 20, 10, 0, 0, true);
     } else if (axeLaunched || throws === 0) {
       if (window.innerWidth < 1024) {
-        controls.current.setLookAt(-10, 10, 40, 10, 0, 0, true);
+        camera.setLookAt(-10, 10, 40, 10, 0, 0, true);
       } else {
-        controls.current.setLookAt(10, 0, 30, 10, 0, 0, true);
+        camera.setLookAt(10, 0, 30, 10, 0, 0, true);
       }
     } else {
-      controls.current.setLookAt(-0.1, 0, 0, 0, 0, 0, true);
+      camera.setLookAt(-0.1, 0, 0, 0, 0, 0, true);
     }
-  }, [axeLaunched, throws, firstGame]);
+  })
 
   return (
     <>
+      <Perf/>
       <CameraControls
         ref={controls}
         mouseButtons={{
@@ -81,8 +88,9 @@ export const Experience = () => {
         }}
       />
       <Walls />
-      <Balloons />
+      {/* <Balloons /> */}
       <AxeController />
+      <Balloons/>
 
       <GradientSky />
       <group position-y={-1} position-x={20}>
@@ -110,7 +118,7 @@ export const Experience = () => {
           fov={80}
         />
       </directionalLight>
-      <Gltf
+      {/* <Gltf
         src="models/AncientRuins-v1.glb"
         castShadow
         receiveShadow
@@ -118,7 +126,7 @@ export const Experience = () => {
         rotation-y={degToRad(-90)}
         position-y={-8}
         position-x={10}
-      />
+      /> */}
       <Environment preset="sunset" environmentIntensity={0.3} />
 
       <VFXParticles
@@ -196,11 +204,11 @@ const Walls = () => {
   );
 };
 
-const Balloons = () => {
-  const balloons = useGame((state) => state.balloons);
+// const Balloons = () => {
+//   const balloons = useGame((state) => state.balloons);
 
-  return balloons.map((balloon) => <Balloon key={balloon.id} {...balloon} />);
-};
+//   return balloons.map((balloon) => <Balloon key={balloon.id} {...balloon} />);
+// };
 
 const Balloon = ({ position, color }) => {
   const { nodes, materials } = useGLTF("models/balloon_modified.glb");
@@ -323,13 +331,19 @@ const Balloon = ({ position, color }) => {
 const AxeController = ({ ...props }) => {
   const rb = useRef();
 
-  const axeLaunched = useGame((state) => state.axeLaunched);
   const launchAxe = useGame((state) => state.launchAxe);
 
   useEffect(() => {
     const onPointerUp = () => {
+        rb.current.setBodyType(0); // 0 = dynamic
+        rb.current.setLinvel({ x: 0, y: 0, z: 0 });
+        rb.current.setAngvel({ x: 0, y: 0, z: 0 });
+        rb.current.applyImpulse({ x: 1, y: 0.5, z: 0 }, true);
+        rb.current.applyTorqueImpulse({ x: 0, y: 0, z: -0.2 }, true);
+        sfxThrow.current.play();
       launchAxe();
-    };
+      } 
+    
     window.addEventListener("pointerup", onPointerUp);
     return () => {
       window.removeEventListener("pointerup", onPointerUp);
@@ -337,6 +351,7 @@ const AxeController = ({ ...props }) => {
   }, []);
   const [impact, setImpact] = useState(false);
   const onTargetHit = useGame((state) => state.onTargetHit);
+  const onBalloonHit = useGame((state) => state.onBalloonHit);
 
   useEffect(() => {
     if (impact) {
@@ -344,23 +359,11 @@ const AxeController = ({ ...props }) => {
     }
   }, [impact]);
 
-  useEffect(() => {
-    if (axeLaunched) {
-      rb.current.setBodyType(0); // 0 = dynamic
-      rb.current.setLinvel({ x: 0, y: 0, z: 0 });
-      rb.current.setAngvel({ x: 0, y: 0, z: 0 });
-      rb.current.applyImpulse({ x: 1, y: 0.5, z: 0 }, true);
-      rb.current.applyTorqueImpulse({ x: 0, y: 0, z: -0.2 }, true);
-      sfxThrow.current.play();
-    } else {
-      setImpact(false);
-    }
-  }, [axeLaunched]);
-
   const sfxThrow = useRef();
   const sfxHit = useRef();
 
   useFrame(({ pointer, viewport }, delta) => {
+    const axeLaunched = useGame.getState().axeLaunched;
     if (!axeLaunched && rb.current) {
       rb.current.setRotation(quat(0, 0, 0, 1), true);
       rb.current.setTranslation({
@@ -383,7 +386,7 @@ const AxeController = ({ ...props }) => {
         loop={false}
         distance={10}
       />
-      {impact && (
+      {/* {impact && (
         <group position={[impact.x, impact.y, impact.z]}>
           <VFXEmitter
             emitter="sparks"
@@ -404,7 +407,7 @@ const AxeController = ({ ...props }) => {
             }}
           />
         </group>
-      )}
+      )} */}
       <RigidBody
         ref={rb}
         position-x={0}
@@ -413,6 +416,11 @@ const AxeController = ({ ...props }) => {
         colliders="hull"
         sensor
         onIntersectionEnter={(e) => {
+          if(e.other.rigidBody.name === "balloon") {
+            e.other.rigidBody.setEnabled(false)
+            onBalloonHit();
+          }
+
           if (e.other.rigidBodyObject.name === "target") {
             rb.current.setBodyType(2); // 2 = "kinematicPosition"
             rb.current.setLinvel({ x: 0, y: 0, z: 0 });
@@ -432,7 +440,7 @@ const AxeController = ({ ...props }) => {
         />
         <Gltf src="models/Axe Small.glb" position-y={-0.3} />
 
-        {axeLaunched && !impact && (
+        {/* {axeLaunched && !impact && (
           <group>
             <VFXEmitter
               position-y={-0.3}
@@ -455,7 +463,7 @@ const AxeController = ({ ...props }) => {
               }}
             />
           </group>
-        )}
+        )} */}
       </RigidBody>
     </group>
   );
