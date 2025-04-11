@@ -128,6 +128,7 @@ export const Balloons = ({ count = 50, rand = MathUtils.randFloatSpread, randFlo
         }
         if(!rigidBody.isEnabled()){
           instance.remove();
+          world.remove(rigidBody);
         }
       }
     });
