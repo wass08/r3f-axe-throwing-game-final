@@ -6,6 +6,7 @@ import { MathUtils, MeshStandardMaterial } from "three";
 import { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useMemo } from "react";
 import { BALLOON_COLORS } from "../hooks/useGame";
+import { mx_bilerp_0 } from "three/src/nodes/materialx/lib/mx_noise.js";
 
 extend({ InstancedMesh2 });
 
@@ -102,7 +103,7 @@ export const Balloons = ({ count = 50, rand = MathUtils.randFloatSpread, randFlo
         instance.position.set(pos.x, pos.y, pos.z);
         instance.quaternion.set(rot.x, rot.y, rot.z, rot.w);
         instance.updateMatrix();
-
+        rigidBody.setTranslation({x: pos.x, y: pos.y, z: 0})
         if(pos.y > 22){
           
           rigidBody.setTranslation({x: pos.x, y: randFloat(-20, -15), z: pos.z});
@@ -128,7 +129,7 @@ export const Balloons = ({ count = 50, rand = MathUtils.randFloatSpread, randFlo
         }
         if(!rigidBody.isEnabled()){
           instance.remove();
-          world.remove(rigidBody);
+          world.removeRigidBody(rigidBody);
         }
       }
     });

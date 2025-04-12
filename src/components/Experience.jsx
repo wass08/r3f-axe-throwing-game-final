@@ -87,7 +87,7 @@ export const Experience = () => {
           size: [0.01, 0.05],
         }}
       />
-      <Walls />
+      {/* <Walls /> */}
       {/* <Balloons /> */}
       <AxeController />
       <Balloons/>
